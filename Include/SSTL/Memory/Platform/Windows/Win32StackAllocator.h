@@ -24,6 +24,8 @@ inline bool InitStackAllocator(StackAllocator* allocator, usize size)
     allocator->Cap = allocator->MemoryBlock + size;
     allocator->LowerHeap = allocator->Base;
     allocator->UpperHeap = allocator->Cap;
+    allocator->LowerPeak = 0;
+    allocator->UpperPeak = 0;
 
     return(true);
 }
@@ -42,6 +44,8 @@ inline void ShutdownStackAllocator(StackAllocator* allocator)
     allocator->Cap = nullptr;
     allocator->LowerHeap = nullptr;
     allocator->UpperHeap = nullptr;
+    allocator->LowerPeak = 0;
+    allocator->UpperPeak = 0;
 }
 
 #endif

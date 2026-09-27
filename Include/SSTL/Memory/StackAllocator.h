@@ -14,6 +14,8 @@ struct StackAllocator
     uint8* Cap;
     uint8* LowerHeap;
     uint8* UpperHeap;
+
+    usize LowerPeak, UpperPeak; // The most bytes each heap has had in use at once; frames release memory, the peaks remember
 };
 
 enum class Heap : uint8
@@ -85,6 +87,19 @@ inline void* Allocate(StackAllocator* allocator, Heap heap, usize size, usize al
         memory = (void*)aligned;
     }
 
+    // NOTE(saeb): Only allocations can raise a peak, so this is the one place to track them.
+    usize lowerUsed = (usize)(allocator->LowerHeap - allocator->Base);
+    usize upperUsed = (usize)(allocator->Cap - allocator->UpperHeap);
+    if(lowerUsed > allocator->LowerPeak)
+    {
+        allocator->LowerPeak = lowerUsed;
+    }
+
+    if(upperUsed > allocator->UpperPeak)
+    {
+        allocator->UpperPeak = upperUsed;
+    }
+
     return(memory);
 }
 
@@ -106,6 +121,38 @@ inline usize GetUsedMemory(StackAllocator* allocator)
     }
 
     return((allocator->LowerHeap - allocator->Base) + (allocator->Cap - allocator->UpperHeap));
+}
+
+inline usize GetHeapUsedMemory(StackAllocator* allocator, Heap heap)
+{
+    if(!allocator)
+    {
+        return(0);
+    }
+
+    return((heap == Heap::Upper) ? (usize)(allocator->Cap - allocator->UpperHeap) : (usize)(allocator->LowerHeap - allocator->Base));
+}
+
+inline usize GetHeapPeakMemory(StackAllocator* allocator, Heap heap)
+{
+    if(!allocator)
+    {
+        return(0);
+    }
+
+    return((heap == Heap::Upper) ? allocator->UpperPeak : allocator->LowerPeak);
+}
+
+// NOTE(saeb): Brings both peaks down to what's in use now, so a peak can cover a window of time, such as the last second, instead of the whole run.
+inline void ResetPeakMemory(StackAllocator* allocator)
+{
+    if(!allocator)
+    {
+        return;
+    }
+
+    allocator->LowerPeak = GetHeapUsedMemory(allocator, Heap::Lower);
+    allocator->UpperPeak = GetHeapUsedMemory(allocator, Heap::Upper);
 }
 
 inline Frame GetFrame(StackAllocator* allocator, Heap heap)

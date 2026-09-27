@@ -408,4 +408,101 @@ inline bool String8Append(String8* string, StringView8 view)
     return(true);
 }
 
+// NOTE(saeb): Writes value's decimal digits so they end just before end, and returns where they start. Digits come out lowest first, so they're written backwards; a uint64 has at most 20.
+inline char8* String8WriteDigitsBackward(char8* end, uint64 value)
+{
+    char8* start = end;
+    do
+    {
+        *--start = (char8)(u8'0' + (value % 10));
+        value /= 10;
+    } while(value > 0);
+
+    return(start);
+}
+
+inline bool String8AppendUInt(String8* string, uint64 value)
+{
+    char8 text[20];
+    char8* start = String8WriteDigitsBackward(text + sizeof(text), value);
+
+    return(String8Append(string, StringView8{ start, (usize)(text + sizeof(text) - start) }));
+}
+
+inline bool String8AppendInt(String8* string, int64 value)
+{
+    // NOTE(saeb): Negated as unsigned, so the most negative int64, which has no positive counterpart, still prints correctly.
+    uint64 magnitude = (value < 0) ? (0 - (uint64)value) : (uint64)value;
+
+    char8 text[21]; // 20 digits and a sign
+    char8* start = String8WriteDigitsBackward(text + sizeof(text), magnitude);
+    if(value < 0)
+    {
+        *--start = u8'-';
+    }
+
+    return(String8Append(string, StringView8{ start, (usize)(text + sizeof(text) - start) }));
+}
+
+// NOTE(saeb): Fixed-point, rounded to the nearest: (2.345, 2) is "2.35" (up to double's own precision), (-0.001, 2) is "0.00", never "-0.00". decimals is capped at 9. Prints "nan", "inf" or "-inf" for those values, and "big" or "-big" for finite values too large to show exactly (1e19 or more once scaled by the decimals).
+inline bool String8AppendReal(String8* string, real64 value, uint32 decimals)
+{
+    if(value != value)
+    {
+        return(String8Append(string, StringView8{ u8"nan", 3 }));
+    }
+
+    bool negative = value < 0.0;
+    real64 magnitude = negative ? -value : value;
+
+    // NOTE(saeb): x - x is 0 for every finite x and NaN for infinity.
+    if(magnitude - magnitude != 0.0)
+    {
+        return(negative ? String8Append(string, StringView8{ u8"-inf", 4 }) : String8Append(string, StringView8{ u8"inf", 3 }));
+    }
+
+    if(decimals > 9)
+    {
+        decimals = 9;
+    }
+
+    uint64 power = 1;
+    for(uint32 i = 0; i < decimals; i++)
+    {
+        power *= 10;
+    }
+
+    real64 scaled = magnitude * (real64)power + 0.5;
+    if(scaled >= 1.0e19) // A uint64 tops out near 1.8e19
+    {
+        return(negative ? String8Append(string, StringView8{ u8"-big", 4 }) : String8Append(string, StringView8{ u8"big", 3 }));
+    }
+
+    uint64 fixed = (uint64)scaled;
+
+    char8 text[32]; // Sign, 20 whole digits, the point and 9 decimals, with room to spare
+    char8* start = text + sizeof(text);
+
+    // Fraction first, since everything is written backwards; keeps leading zeros, so 0.05 is "05", not "5".
+    if(decimals > 0)
+    {
+        uint64 fraction = fixed % power;
+        for(uint32 i = 0; i < decimals; i++)
+        {
+            *--start = (char8)(u8'0' + (fraction % 10));
+            fraction /= 10;
+        }
+
+        *--start = u8'.';
+    }
+
+    start = String8WriteDigitsBackward(start, fixed / power);
+    if(negative && fixed > 0)
+    {
+        *--start = u8'-';
+    }
+
+    return(String8Append(string, StringView8{ start, (usize)(text + sizeof(text) - start) }));
+}
+
 #endif
