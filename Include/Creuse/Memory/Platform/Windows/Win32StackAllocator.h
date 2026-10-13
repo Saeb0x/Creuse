@@ -6,7 +6,7 @@
 #endif
 #include <windows.h>
 
-inline bool InitStackAllocator(StackAllocator* allocator, usize size)
+inline bool StackAllocatorInit(StackAllocator* allocator, usize size)
 {
     if(!allocator || size == 0)
     {
@@ -30,7 +30,7 @@ inline bool InitStackAllocator(StackAllocator* allocator, usize size)
     return(true);
 }
 
-inline void ShutdownStackAllocator(StackAllocator* allocator)
+inline void StackAllocatorShutdown(StackAllocator* allocator)
 {
     if(!allocator || !allocator->MemoryBlock)
     {

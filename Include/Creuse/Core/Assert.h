@@ -18,10 +18,10 @@
     extern "C" __declspec(dllimport) void __stdcall DebugBreak(void);
 #endif
 
-using AssertHandler = void(*)(const char* expression, const char* file, int32 line, const char* message);
+typedef void (*AssertHandler)(const char* expression, const char* file, int32 line, const char* message);
 
 #if CREUSE_DEFAULT_ASSERT_HANDLER
-inline void DefaultAssertHandler(const char* expression, const char* file, int32 line, const char* message)
+inline void AssertDefaultHandler(const char* expression, const char* file, int32 line, const char* message)
 {
     std::fprintf(stderr, "Creuse: Assertion failed:\n    Expression: %s.\n    At: %s:%d.\n", expression, file, line);
 
@@ -40,7 +40,7 @@ inline void DefaultAssertHandler(const char* expression, const char* file, int32
     std::abort();
 }
 
-inline AssertHandler g_AssertHandler = &DefaultAssertHandler;
+inline AssertHandler g_AssertHandler = &AssertDefaultHandler;
 #else
 inline AssertHandler g_AssertHandler = nullptr;
 #endif

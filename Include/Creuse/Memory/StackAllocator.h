@@ -30,8 +30,8 @@ struct Frame
     Heap Heap;
 };
 
-bool InitStackAllocator(StackAllocator* allocator, usize size);
-void ShutdownStackAllocator(StackAllocator* allocator);
+bool StackAllocatorInit(StackAllocator* allocator, usize size);
+void StackAllocatorShutdown(StackAllocator* allocator);
 
 #if CREUSE_PLATFORM_WINDOWS
     #include "Platform/Windows/Win32StackAllocator.h"
@@ -39,7 +39,7 @@ void ShutdownStackAllocator(StackAllocator* allocator);
     #error "Creuse: Unsupported platform for StackAllocator."
 #endif
 
-inline void* Allocate(StackAllocator* allocator, Heap heap, usize size, usize alignment)
+inline void* StackAllocatorAllocate(StackAllocator* allocator, Heap heap, usize size, usize alignment)
 {
     if(!allocator || size == 0 || alignment == 0)
     {
@@ -103,7 +103,7 @@ inline void* Allocate(StackAllocator* allocator, Heap heap, usize size, usize al
     return(memory);
 }
 
-inline usize GetAvailableMemory(StackAllocator* allocator)
+inline usize StackAllocatorGetAvailableMemory(StackAllocator* allocator)
 {
     if(!allocator)
     {
@@ -113,7 +113,7 @@ inline usize GetAvailableMemory(StackAllocator* allocator)
     return(allocator->UpperHeap - allocator->LowerHeap);
 }
 
-inline usize GetUsedMemory(StackAllocator* allocator)
+inline usize StackAllocatorGetUsedMemory(StackAllocator* allocator)
 {
     if(!allocator)
     {
@@ -123,7 +123,7 @@ inline usize GetUsedMemory(StackAllocator* allocator)
     return((allocator->LowerHeap - allocator->Base) + (allocator->Cap - allocator->UpperHeap));
 }
 
-inline usize GetHeapUsedMemory(StackAllocator* allocator, Heap heap)
+inline usize StackAllocatorGetHeapUsedMemory(StackAllocator* allocator, Heap heap)
 {
     if(!allocator)
     {
@@ -133,7 +133,7 @@ inline usize GetHeapUsedMemory(StackAllocator* allocator, Heap heap)
     return((heap == Heap::Upper) ? (usize)(allocator->Cap - allocator->UpperHeap) : (usize)(allocator->LowerHeap - allocator->Base));
 }
 
-inline usize GetHeapPeakMemory(StackAllocator* allocator, Heap heap)
+inline usize StackAllocatorGetHeapPeakMemory(StackAllocator* allocator, Heap heap)
 {
     if(!allocator)
     {
@@ -144,18 +144,18 @@ inline usize GetHeapPeakMemory(StackAllocator* allocator, Heap heap)
 }
 
 // NOTE(saeb): Brings both peaks down to what's in use now, so a peak can cover a window of time, such as the last second, instead of the whole run.
-inline void ResetPeakMemory(StackAllocator* allocator)
+inline void StackAllocatorResetPeakMemory(StackAllocator* allocator)
 {
     if(!allocator)
     {
         return;
     }
 
-    allocator->LowerPeak = GetHeapUsedMemory(allocator, Heap::Lower);
-    allocator->UpperPeak = GetHeapUsedMemory(allocator, Heap::Upper);
+    allocator->LowerPeak = StackAllocatorGetHeapUsedMemory(allocator, Heap::Lower);
+    allocator->UpperPeak = StackAllocatorGetHeapUsedMemory(allocator, Heap::Upper);
 }
 
-inline Frame GetFrame(StackAllocator* allocator, Heap heap)
+inline Frame StackAllocatorGetFrame(StackAllocator* allocator, Heap heap)
 {
     Frame frame;
     frame.Mark = (heap == Heap::Upper) ? allocator->UpperHeap : allocator->LowerHeap;
@@ -164,7 +164,7 @@ inline Frame GetFrame(StackAllocator* allocator, Heap heap)
     return(frame);
 }
 
-inline void ReleaseFrame(StackAllocator* allocator, Frame frame)
+inline void StackAllocatorReleaseFrame(StackAllocator* allocator, Frame frame)
 {
     if(frame.Heap == Heap::Upper)
     {

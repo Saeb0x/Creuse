@@ -4,20 +4,19 @@
 #include <cstdint>
 #include <cstddef>
 
-using int8 = std::int8_t;
-using int16 = std::int16_t;
-using int32 = std::int32_t;
-using int64 = std::int64_t;
+typedef std::int8_t int8;
+typedef std::int16_t int16;
+typedef std::int32_t int32;
+typedef std::int64_t int64;
+typedef std::uint8_t uint8;
+typedef std::uint16_t uint16;
+typedef std::uint32_t uint32;
+typedef std::uint64_t uint64;
 
-using uint8 = std::uint8_t;
-using uint16 = std::uint16_t;
-using uint32 = std::uint32_t;
-using uint64 = std::uint64_t;
+typedef float real32;
+typedef double real64;
 
-using real32 = float;
-using real64 = double;
-
-using usize = std::size_t;
-using isize = std::ptrdiff_t;
+typedef std::size_t usize;
+typedef std::ptrdiff_t isize;
 
 #endif
