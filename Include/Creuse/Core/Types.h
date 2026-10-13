@@ -1,5 +1,5 @@
-#if !defined(SSTL_TYPES_H)
-#define SSTL_TYPES_H
+#if !defined(CREUSE_TYPES_H)
+#define CREUSE_TYPES_H
 
 #include <cstdint>
 #include <cstddef>

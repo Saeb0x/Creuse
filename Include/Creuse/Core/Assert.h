@@ -1,36 +1,36 @@
-#if !defined(SSTL_ASSERT_H)
-#define SSTL_ASSERT_H
+#if !defined(CREUSE_ASSERT_H)
+#define CREUSE_ASSERT_H
 
 #include "Config.h"
 #include "Types.h"
 
-#if !defined(SSTL_DEFAULT_ASSERT_HANDLER)
-    #define SSTL_DEFAULT_ASSERT_HANDLER 1
+#if !defined(CREUSE_DEFAULT_ASSERT_HANDLER)
+    #define CREUSE_DEFAULT_ASSERT_HANDLER 1
 #endif
 
-#if SSTL_DEFAULT_ASSERT_HANDLER
+#if CREUSE_DEFAULT_ASSERT_HANDLER
     #include <cstdio>
     #include <cstdlib>
 #endif
 
-#if SSTL_PLATFORM_WINDOWS && SSTL_DEFAULT_ASSERT_HANDLER
+#if CREUSE_PLATFORM_WINDOWS && CREUSE_DEFAULT_ASSERT_HANDLER
     extern "C" __declspec(dllimport) int __stdcall IsDebuggerPresent(void);
     extern "C" __declspec(dllimport) void __stdcall DebugBreak(void);
 #endif
 
 using AssertHandler = void(*)(const char* expression, const char* file, int32 line, const char* message);
 
-#if SSTL_DEFAULT_ASSERT_HANDLER
+#if CREUSE_DEFAULT_ASSERT_HANDLER
 inline void DefaultAssertHandler(const char* expression, const char* file, int32 line, const char* message)
 {
-    std::fprintf(stderr, "SSTL: Assertion failed:\n    Expression: %s.\n    At: %s:%d.\n", expression, file, line);
+    std::fprintf(stderr, "Creuse: Assertion failed:\n    Expression: %s.\n    At: %s:%d.\n", expression, file, line);
 
     if(message != nullptr)
     {
         std::fprintf(stderr, "    Message: %s.\n", message);
     }
 
-#if SSTL_PLATFORM_WINDOWS
+#if CREUSE_PLATFORM_WINDOWS
     if(IsDebuggerPresent())
     {
         DebugBreak();
@@ -45,8 +45,8 @@ inline AssertHandler g_AssertHandler = &DefaultAssertHandler;
 inline AssertHandler g_AssertHandler = nullptr;
 #endif
 
-#if SSTL_DEBUG
-#define SSTL_ASSERT_MSG(expression, message) \
+#if CREUSE_DEBUG
+#define CREUSE_ASSERT_MSG(expression, message) \
     do \
     { \
         if (!(expression)) \
@@ -55,14 +55,14 @@ inline AssertHandler g_AssertHandler = nullptr;
         } \
     } while (0)
 #else
-    #define SSTL_ASSERT_MSG(expression, message) ((void)sizeof(!(expression)), (void)sizeof(message))
+    #define CREUSE_ASSERT_MSG(expression, message) ((void)sizeof(!(expression)), (void)sizeof(message))
 #endif
 
-#define SSTL_ASSERT(expression) SSTL_ASSERT_MSG(expression, nullptr)
-#define SSTL_ASSERT_STATIC_MSG(expression, message) static_assert(expression, message)
-#define SSTL_ASSERT_STATIC(expression) static_assert(expression)
+#define CREUSE_ASSERT(expression) CREUSE_ASSERT_MSG(expression, nullptr)
+#define CREUSE_ASSERT_STATIC_MSG(expression, message) static_assert(expression, message)
+#define CREUSE_ASSERT_STATIC(expression) static_assert(expression)
 
 // NOTE(saeb): Unconditional failure.
-#define SSTL_FAIL_MSG(message) (g_AssertHandler("SSTL_FAIL", __FILE__, __LINE__, (message)))
+#define CREUSE_FAIL_MSG(message) (g_AssertHandler("CREUSE_FAIL", __FILE__, __LINE__, (message)))
 
 #endif

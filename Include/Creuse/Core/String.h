@@ -1,8 +1,8 @@
-#if !defined(SSTL_STRING_H)
-#define SSTL_STRING_H
+#if !defined(CREUSE_STRING_H)
+#define CREUSE_STRING_H
 
 #include "Types.h"
-#include "SSTL/Memory/StackAllocator.h"
+#include "Creuse/Memory/StackAllocator.h"
 
 using char8 = char8_t;
 using char16 = char16_t;

@@ -1,11 +1,11 @@
-#if !defined(SSTL_STACKALLOCATOR_H)
-#define SSTL_STACKALLOCATOR_H
+#if !defined(CREUSE_STACKALLOCATOR_H)
+#define CREUSE_STACKALLOCATOR_H
 
-#include "SSTL/Core/Config.h"
-#include "SSTL/Core/Types.h"
+#include "Creuse/Core/Config.h"
+#include "Creuse/Core/Types.h"
 
-#define SSTL_ALIGNUP(address, alignmentBytes) ((((usize)(address)) + ((usize)(alignmentBytes)) - 1) & (~(((usize)(alignmentBytes)) - 1)))
-#define SSTL_ALIGNDOWN(address, alignmentBytes) ((((usize)(address))) & (~(((usize)(alignmentBytes)) - 1)))
+#define CREUSE_ALIGNUP(address, alignmentBytes) ((((usize)(address)) + ((usize)(alignmentBytes)) - 1) & (~(((usize)(alignmentBytes)) - 1)))
+#define CREUSE_ALIGNDOWN(address, alignmentBytes) ((((usize)(address))) & (~(((usize)(alignmentBytes)) - 1)))
 
 struct StackAllocator
 {
@@ -33,10 +33,10 @@ struct Frame
 bool InitStackAllocator(StackAllocator* allocator, usize size);
 void ShutdownStackAllocator(StackAllocator* allocator);
 
-#if SSTL_PLATFORM_WINDOWS
+#if CREUSE_PLATFORM_WINDOWS
     #include "Platform/Windows/Win32StackAllocator.h"
 #else
-    #error "SSTL: Unsupported platform for StackAllocator."
+    #error "Creuse: Unsupported platform for StackAllocator."
 #endif
 
 inline void* Allocate(StackAllocator* allocator, Heap heap, usize size, usize alignment)
@@ -65,7 +65,7 @@ inline void* Allocate(StackAllocator* allocator, Heap heap, usize size, usize al
         }
 
         // NOTE(saeb): Growing down, so align down; aligning up would move back into memory already handed out.
-        usize aligned = SSTL_ALIGNDOWN(upper - size, alignment);
+        usize aligned = CREUSE_ALIGNDOWN(upper - size, alignment);
         if(aligned < lower)
         {
             return(nullptr); // Alignment padding collides with lower heap
@@ -77,7 +77,7 @@ inline void* Allocate(StackAllocator* allocator, Heap heap, usize size, usize al
     else
     {
         // From lower heap (up).
-        usize aligned = SSTL_ALIGNUP(lower, alignment);
+        usize aligned = CREUSE_ALIGNUP(lower, alignment);
         if(aligned > upper || size > upper - aligned)
         {
             return(nullptr); // Out of memory or collision
