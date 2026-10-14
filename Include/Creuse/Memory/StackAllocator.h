@@ -1,8 +1,9 @@
 #if !defined(CREUSE_STACKALLOCATOR_H)
 #define CREUSE_STACKALLOCATOR_H
 
-#include "Creuse/Core/Config.h"
 #include "Creuse/Core/Types.h"
+#include "Creuse/Core/Config.h"
+#include "Creuse/Core/Assert.h"
 
 #define CREUSE_ALIGNUP(address, alignmentBytes) ((((usize)(address)) + ((usize)(alignmentBytes)) - 1) & (~(((usize)(alignmentBytes)) - 1)))
 #define CREUSE_ALIGNDOWN(address, alignmentBytes) ((((usize)(address))) & (~(((usize)(alignmentBytes)) - 1)))
@@ -158,20 +159,35 @@ inline void StackAllocatorResetPeakMemory(StackAllocator* allocator)
 inline Frame StackAllocatorGetFrame(StackAllocator* allocator, Heap heap)
 {
     Frame frame;
-    frame.Mark = (heap == Heap::Upper) ? allocator->UpperHeap : allocator->LowerHeap;
     frame.Heap = heap;
+
+    if(!allocator)
+    {
+        frame.Mark = nullptr;
+        return(frame);
+    }
+
+    frame.Mark = (heap == Heap::Upper) ? allocator->UpperHeap : allocator->LowerHeap;
 
     return(frame);
 }
 
 inline void StackAllocatorReleaseFrame(StackAllocator* allocator, Frame frame)
 {
+    if(!allocator || !frame.Mark)
+    {
+        return;
+    }
+
+    // NOTE(saeb): Frames must be released newest first; releasing an older frame and then a newer one would move the heap back over memory that was already given back.
     if(frame.Heap == Heap::Upper)
     {
+        CREUSE_ASSERT_MSG(frame.Mark >= allocator->UpperHeap && frame.Mark <= allocator->Cap, "Upper heap frame released out of order");
         allocator->UpperHeap = frame.Mark;
     }
     else
     {
+        CREUSE_ASSERT_MSG(frame.Mark <= allocator->LowerHeap && frame.Mark >= allocator->Base, "Lower heap frame released out of order");
         allocator->LowerHeap = frame.Mark;
     }
 }

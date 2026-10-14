@@ -14,7 +14,7 @@ inline bool StackAllocatorInit(StackAllocator* allocator, usize size)
     }
 
     // NOTE(saeb): VirtualAlloc() guarantees page-aligned base address.
-    allocator->MemoryBlock = (uint8*)VirtualAlloc(nullptr, size, MEM_COMMIT, PAGE_READWRITE);
+    allocator->MemoryBlock = (uint8*)VirtualAlloc(nullptr, size, MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE);
     if(!allocator->MemoryBlock)
     {
         return(false);
